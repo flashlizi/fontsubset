@@ -1,0 +1,69 @@
+#!/usr/bin/env node
+
+var program = require('commander');
+var version = require('../package').version;
+var spawn = require('child_process').spawn;
+var path = require('path');
+var fs = require('fs');
+var mime = require('mime');
+
+var COMMAND_NAME = 'java';
+var COMMAND_ARGS = [
+    '-classpath', 
+    path.join(__dirname, '../lib/sfntly-1.0.0.jar'), 
+    'com.google.typography.font.tools.sfnttool.SfntTool'
+];
+
+program.version(version);
+program.description('A font subset extraction tool using google sfntly');
+program.usage('[options] fontFile outputFile');
+program.option('-s, --string [string]', 'subset string to extract');
+program.option('-b, --base64', 'output font subset in base64 format');
+program.parse(process.argv);
+
+if(program.args[0]){
+    var subsetString = program.string;
+    var fontFile = program.args[0];
+    var outputFile = program.args[1];
+    var ext = path.extname(fontFile);
+    var dirname = path.dirname(fontFile);
+    var basename = path.basename(fontFile, ext);
+    if(!outputFile){
+        outputFile = path.join(dirname, basename + '-subset' + ext);
+    }
+
+    processFont(fontFile, outputFile, subsetString, function(code){
+        console.log('font subset created: ' + outputFile);
+        if(program.base64){
+            var mimeType = mime.lookup(fontFile);
+            var buffer = fs.readFileSync(outputFile);
+            var base64Str = buffer.toString('base64');
+            base64Str = 'data:' + mimeType + ';base64,' + base64Str;
+            console.log(base64Str);
+        }
+    });
+}else{
+    process.stdout.write(program.helpInformation());
+    program.emit('--help');
+}
+
+function processFont(fontFile, outputFile, subsetString, completeHandler){
+    var args = COMMAND_ARGS.slice(0);
+    if(subsetString) args.push('-s', subsetString);
+    args.push(fontFile, outputFile);
+    execCmd(args, completeHandler);
+}
+
+function execCmd(args, completeHandler){
+    var cmd = spawn(COMMAND_NAME, args);
+    cmd.stdout.on('data', function(data){
+        console.log(data.toString());
+    });
+    cmd.stderr.on('data', function(data){
+        console.log(data.toString());
+    });
+    cmd.on('close', function(code){
+        // console.log('close:', code);
+        completeHandler && completeHandler(code);
+    });
+}

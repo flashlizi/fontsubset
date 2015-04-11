@@ -1,0 +1,24 @@
+{
+  "name": "fontsubset",
+  "description": "A font subset extraction tool using google sfntly",
+  "version": "0.1.3",
+  "site": "https://github.com/flashlizi/fontsubset",
+  "author": {
+    "name": "flashlizi"
+  },
+  "bin": {
+    "fontsubset": "bin/fontsubset"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/flashlizi/fontsubset"
+  },
+  "dependencies": {
+    "commander": "^2.2.0",
+    "mime": "~1.2.1"
+  },
+  "keywords": [
+    "webfont",
+    "fontsubset"
+  ]
+}
