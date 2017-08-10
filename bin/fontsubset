@@ -42,7 +42,6 @@ var keyboardChars = [
     "ｚｘｃｖｂｎｍ，．／",
     "ＺＸＣＶＢＮＭ＜＞？",
     "　",
-
     // 中文标点
     "·",
     "…—",
@@ -52,7 +51,6 @@ var keyboardChars = [
     "『』",
     "，。、",
     "《》",
-
 ].join('');
 
 if (program.args[0]) {
