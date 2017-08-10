@@ -82,6 +82,7 @@ if (program.args[0]) {
         pool[c] = 1;
     }
     var keys = Object.keys(pool);
+    keys.sort();
     subsetString = keys.join('');
 
     console.log(subsetString);
