@@ -9,32 +9,78 @@ var mime = require('mime');
 
 var COMMAND_NAME = 'java';
 var COMMAND_ARGS = [
-    '-classpath', 
-    path.join(__dirname, '../lib/sfntly-1.0.0.jar'), 
-    'com.google.typography.font.tools.sfnttool.SfntTool'
+    '-jar',
+    path.join(__dirname, '../lib/sfnttool.jar')
 ];
 
 program.version(version);
 program.description('A font subset extraction tool using google sfntly');
 program.usage('[options] fontFile outputFile');
+program.option('-t, --text [file]', 'the text file included subset string to extract');
 program.option('-s, --string [string]', 'subset string to extract');
 program.option('-b, --base64', 'output font subset in base64 format');
 program.parse(process.argv);
 
-if(program.args[0]){
-    var subsetString = program.string;
+var alwaysIncluded = [
+    // 英文
+    "`1234567890-=",
+    "~!@#$%^&*()_+",
+    "qwertyuiop[]\\",
+    "QWERTYUIOP{}|",
+    "asdfghjkl;'",
+    "ASDFGHJKL:\"",
+    "zxcvbnm,./",
+    "ZXCVBNM<>?",
+    " ",
+    // 中文全角
+    "｀１２３４５６７８９０－＝",
+    "￣！＠＃￥％＾＆×（）＿＋",
+    "ｑｗｅｒｔｙｕｉｏｐ［］＼",
+    "ＱＷＥＲＴＹＵＩＯＰ｛｝｜",
+    "ａｓｄｆｇｈｊｋｌ；＇",
+    "ＡＳＤＦＧＨＪＫＬ：＂",
+    "ｚｘｃｖｂｎｍ，．／",
+    "ＺＸＣＶＢＮＭ＜＞？",
+    "　",
+
+    // 中文标点
+    "·",
+    "…—",
+    "【】、",
+    "",
+    "「」",
+    "『』",
+    "，。、",
+    "《》",
+
+].join('');
+
+if (program.args[0]) {
+    var textFile = program.text;
+    var subsetString = program.string || "";
     var fontFile = program.args[0];
     var outputFile = program.args[1];
+
     var ext = path.extname(fontFile);
     var dirname = path.dirname(fontFile);
     var basename = path.basename(fontFile, ext);
-    if(!outputFile){
+    if (!outputFile) {
         outputFile = path.join(dirname, basename + '-subset' + ext);
     }
 
-    processFont(fontFile, outputFile, subsetString, function(code){
+    subsetString += alwaysIncluded;
+
+    if (textFile) {
+        textFile = path.normalize(textFile);
+        var text = fs.readFileSync(textFile, 'utf-8');
+        subsetString += text;
+    }
+
+    console.log(subsetString);
+
+    processFont(fontFile, outputFile, subsetString, function(code) {
         console.log('font subset created: ' + outputFile);
-        if(program.base64){
+        if (program.base64) {
             var mimeType = mime.lookup(fontFile);
             var buffer = fs.readFileSync(outputFile);
             var base64Str = buffer.toString('base64');
@@ -42,27 +88,27 @@ if(program.args[0]){
             console.log(base64Str);
         }
     });
-}else{
+} else {
     process.stdout.write(program.helpInformation());
     program.emit('--help');
 }
 
-function processFont(fontFile, outputFile, subsetString, completeHandler){
+function processFont(fontFile, outputFile, subsetString, completeHandler) {
     var args = COMMAND_ARGS.slice(0);
-    if(subsetString) args.push('-s', subsetString);
+    if (subsetString) args.push('-s', subsetString);
     args.push(fontFile, outputFile);
     execCmd(args, completeHandler);
 }
 
-function execCmd(args, completeHandler){
+function execCmd(args, completeHandler) {
     var cmd = spawn(COMMAND_NAME, args);
-    cmd.stdout.on('data', function(data){
+    cmd.stdout.on('data', function(data) {
         console.log(data.toString());
     });
-    cmd.stderr.on('data', function(data){
+    cmd.stderr.on('data', function(data) {
         console.log(data.toString());
     });
-    cmd.on('close', function(code){
+    cmd.on('close', function(code) {
         // console.log('close:', code);
         completeHandler && completeHandler(code);
     });
