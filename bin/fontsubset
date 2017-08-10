@@ -2,7 +2,8 @@
 
 var program = require('commander');
 var version = require('../package').version;
-var spawn = require('child_process').spawn;
+var cp = require('child_process');
+var spawn = cp.spawn;
 var path = require('path');
 var fs = require('fs');
 var mime = require('mime');
@@ -74,7 +75,17 @@ if (program.args[0]) {
         subsetString += text;
     }
 
+    var length = subsetString.length;
+    var pool = {};
+    for (var i = 0; i < length; i++) {
+        var c = subsetString[i];
+        pool[c] = 1;
+    }
+    var keys = Object.keys(pool);
+    subsetString = keys.join('');
+
     console.log(subsetString);
+    console.log(subsetString.length);
 
     processFont(fontFile, outputFile, subsetString, function(code) {
         console.log('font subset created: ' + outputFile);
