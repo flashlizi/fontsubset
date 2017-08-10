@@ -21,7 +21,7 @@ program.option('-s, --string [string]', 'subset string to extract');
 program.option('-b, --base64', 'output font subset in base64 format');
 program.parse(process.argv);
 
-var alwaysIncluded = [
+var keyboardChars = [
     // 英文
     "`1234567890-=",
     "~!@#$%^&*()_+",
@@ -68,7 +68,7 @@ if (program.args[0]) {
         outputFile = path.join(dirname, basename + '-subset' + ext);
     }
 
-    subsetString += alwaysIncluded;
+    subsetString += keyboardChars;
 
     if (textFile) {
         textFile = path.normalize(textFile);
