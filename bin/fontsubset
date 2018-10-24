@@ -14,48 +14,19 @@ var COMMAND_ARGS = [
     path.join(__dirname, '../lib/sfnttool.jar')
 ];
 
+var SPLIT_CHAR = ":";
+
 program.version(version);
 program.description('A font subset extraction tool using google sfntly');
 program.usage('[options] fontFile outputFile');
-program.option('-t, --text [file]', 'the text file included subset strings to extract');
+program.option('-t, --text [file1' + SPLIT_CHAR + 'file2 ...]', 'the text file included subset strings to extract');
 program.option('-s, --string [string]', 'subset string to extract');
 program.option('-b, --base64', 'output font subset in base64 format');
 program.parse(process.argv);
 
-var keyboardChars = [
-    // 英文
-    "`1234567890-=",
-    "~!@#$%^&*()_+",
-    "qwertyuiop[]\\",
-    "QWERTYUIOP{}|",
-    "asdfghjkl;'",
-    "ASDFGHJKL:\"",
-    "zxcvbnm,./",
-    "ZXCVBNM<>?",
-    " ",
-    // 中文全角
-    "｀１２３４５６７８９０－＝",
-    "￣！＠＃￥％＾＆×（）＿＋",
-    "ｑｗｅｒｔｙｕｉｏｐ［］＼",
-    "ＱＷＥＲＴＹＵＩＯＰ｛｝｜",
-    "ａｓｄｆｇｈｊｋｌ；＇",
-    "ＡＳＤＦＧＨＪＫＬ：＂",
-    "ｚｘｃｖｂｎｍ，．／",
-    "ＺＸＣＶＢＮＭ＜＞？",
-    "　",
-    // 中文标点
-    "·",
-    "…—",
-    "【】、",
-    "",
-    "「」",
-    "『』",
-    "，。、",
-    "《》",
-].join('');
-
 if (program.args[0]) {
     var textFile = program.text;
+
     var subsetString = program.string || "";
     var fontFile = program.args[0];
     var outputFile = program.args[1];
@@ -67,12 +38,17 @@ if (program.args[0]) {
         outputFile = path.join(dirname, basename + '-subset' + ext);
     }
 
-    subsetString += keyboardChars;
-
     if (textFile) {
-        textFile = path.normalize(textFile);
-        var text = fs.readFileSync(textFile, 'utf-8');
-        subsetString += text;
+        var textFiles = textFile.split(SPLIT_CHAR);
+        textFiles.forEach(function(_textFile) {
+            _textFile = path.normalize(_textFile);
+            if (fs.existsSync(_textFile)) {
+                var text = fs.readFileSync(_textFile, 'utf-8');
+                subsetString += text;
+            } else {
+                console.log(" * Can't find the file: " + _textFile);
+            }
+        });
     }
 
     var length = subsetString.length;
@@ -85,11 +61,12 @@ if (program.args[0]) {
     keys.sort();
     subsetString = keys.join('');
 
+    console.log(" * All characters:");
     console.log(subsetString);
-    console.log(subsetString.length);
+    console.log(" * Character count: " + subsetString.length);
 
     processFont(fontFile, outputFile, subsetString, function(code) {
-        console.log('font subset created: ' + outputFile);
+        console.log(' * Font subset created: ' + outputFile);
         if (program.base64) {
             var mimeType = mime.lookup(fontFile);
             var buffer = fs.readFileSync(outputFile);
