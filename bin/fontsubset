@@ -17,7 +17,7 @@ var COMMAND_ARGS = [
 program.version(version);
 program.description('A font subset extraction tool using google sfntly');
 program.usage('[options] fontFile outputFile');
-program.option('-t, --text [file]', 'the text file included subset string to extract');
+program.option('-t, --text [file]', 'the text file included subset strings to extract');
 program.option('-s, --string [string]', 'subset string to extract');
 program.option('-b, --base64', 'output font subset in base64 format');
 program.parse(process.argv);
