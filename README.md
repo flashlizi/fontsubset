@@ -4,8 +4,6 @@ You can use it get a tiny font size, especially for webfont.
 
 ### Install
 
-( Only for the version of https://github.com/flashlizi/fontsubset )
-
 ```
 npm install fontsubset -g
 ```
